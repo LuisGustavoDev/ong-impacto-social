@@ -15,6 +15,7 @@ export const NAV_LINKS: readonly NavLink[] = [
   { label: "Impacto", href: "/#impacto" },
   { label: "Como ajudar", href: "/#como-ajudar" },
   { label: "Histórias", href: "/#historias" },
+  { label: "Dúvidas", href: "/#duvidas" },
 ];
 
 export const SOCIAL_LINKS: readonly SocialLink[] = [

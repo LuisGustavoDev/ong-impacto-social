@@ -8,7 +8,8 @@ import {
   type ButtonVariant,
 } from "@/components/ui/button-styles";
 import { useDonation } from "@/context/DonationContext";
-import type { CheckoutStep } from "@/types/donation";
+import { isPresetAmount } from "@/data/donation";
+import type { Cents, CheckoutStep } from "@/types/donation";
 
 interface DonateButtonProps {
   label?: string;
@@ -17,6 +18,8 @@ interface DonateButtonProps {
   className?: string;
   /** Em qual etapa o checkout abre (padrão: escolha do valor). */
   step?: CheckoutStep;
+  /** Se informado, pré-seleciona esse valor antes de abrir o checkout. */
+  amount?: Cents;
   withIcon?: boolean;
   /** Ação extra ao clicar (ex.: fechar o menu mobile). */
   onClick?: () => void;
@@ -32,10 +35,11 @@ export function DonateButton({
   size = "md",
   className,
   step = "amount",
+  amount,
   withIcon = true,
   onClick,
 }: DonateButtonProps) {
-  const { openCheckout } = useDonation();
+  const { setAmount, openCheckout } = useDonation();
 
   return (
     <button
@@ -43,6 +47,7 @@ export function DonateButton({
       className={buttonStyles({ variant, size, className })}
       onClick={() => {
         onClick?.();
+        if (amount !== undefined) setAmount(amount, !isPresetAmount(amount));
         openCheckout(step);
       }}
     >
