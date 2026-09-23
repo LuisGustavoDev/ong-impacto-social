@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { DonationProvider } from "@/context/DonationContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,7 +12,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="pt-BR">
-      <body className="flex min-h-dvh flex-col">{children}</body>
+      <body className="flex min-h-dvh flex-col">
+        <DonationProvider>{children}</DonationProvider>
+      </body>
     </html>
   );
 }
