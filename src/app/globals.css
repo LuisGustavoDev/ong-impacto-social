@@ -1,5 +1,36 @@
 @import "tailwindcss";
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
+/* Tokens da marca -> geram utilitários como bg-brand-700, text-accent-500 */
+@theme {
+  --color-brand-50: #edf7f1;
+  --color-brand-100: #d5ede0;
+  --color-brand-500: #1a8a63;
+  --color-brand-600: #137552;
+  --color-brand-700: #0f5e43;
+  --color-brand-900: #173a31;
+  --color-brand-950: #0f2a23;
+
+  --color-accent-400: #fbc24a;
+  --color-accent-500: #f7b52c;
+  --color-accent-600: #e09e12;
+
+  --color-ink: #13302a; /* títulos */
+  --color-surface: #f3f7f9; /* fundo de seções alternadas */
+}
+
+/* "inline" porque a variável vem do next/font, definida em runtime no <html> */
+@theme inline {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* compensa a navbar fixa ao clicar em links âncora (#causa, #impacto...) */
+  scroll-padding-top: 5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
