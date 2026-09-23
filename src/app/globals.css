@@ -34,3 +34,7 @@ html {
     scroll-behavior: auto;
   }
 }
+/* Trava a rolagem da página enquanto um modal nativo (<dialog>) está aberto. */
+body:has(dialog[open]) {
+  overflow: hidden;
+}
