@@ -16,13 +16,29 @@ export function saveConfirmation(confirmation: DonationConfirmation): void {
   }
 }
 
-export function loadConfirmation(): DonationConfirmation | null {
+/**
+ * Lê o JSON "cru". Serve de snapshot para o useSyncExternalStore da página /obrigado:
+ * uma string é comparável por valor, então não causa re-render infinito.
+ */
+export function readConfirmationRaw(): string | null {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as DonationConfirmation) : null;
+    return sessionStorage.getItem(STORAGE_KEY);
   } catch {
     return null;
   }
+}
+
+export function parseConfirmation(raw: string): DonationConfirmation | null {
+  try {
+    return JSON.parse(raw) as DonationConfirmation;
+  } catch {
+    return null;
+  }
+}
+
+export function loadConfirmation(): DonationConfirmation | null {
+  const raw = readConfirmationRaw();
+  return raw ? parseConfirmation(raw) : null;
 }
 
 export function clearConfirmation(): void {
