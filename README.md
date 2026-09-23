@@ -1,25 +1,41 @@
 # Juntos pelo Amanhã 💚
 
-Página institucional e fluxo de doação para a **Juntos pelo Amanhã**, uma ONG fictícia dedicada a garantir educação, saúde e proteção para crianças em situação de vulnerabilidade.
+Landing page institucional e fluxo completo de doação para a **Juntos pelo Amanhã**, uma ONG fictícia dedicada a garantir educação, saúde e proteção para crianças em situação de vulnerabilidade.
 
 Projeto desenvolvido como desafio técnico para a vaga de **Desenvolvedor Web Full Stack Júnior**.
 
-🔗 **Deploy:** _em breve_ · 📄 **Pesquisa de referência (UX/UI):** benchmark de sites de ONGs (MSF, UNICEF, WWF, Greenpeace e ActionAid) que embasou as decisões de interface
+🔗 **Deploy:** _adicione aqui a URL da Vercel_ · 📄 **Pesquisa de referência (UX/UI):** benchmark de sites de ONGs (MSF, UNICEF, WWF, Greenpeace e ActionAid) que embasou as decisões de interface
 
 ---
 
-## 📌 Status do projeto
+## 📌 O que foi entregue
 
-Desenvolvimento incremental, uma etapa por branch e Pull Request:
+| Requisito | Onde está |
+|---|---|
+| Landing page responsiva com seções institucionais | `src/app/page.tsx` + `src/components/sections/` |
+| Doação logo na primeira dobra (única ou mensal, valores sugeridos e livre) | `HeroSection` + `DonationWidget` |
+| Valores conectados ao impacto real | `ImpactSection` (fonte única: `IMPACT_TIERS`) |
+| Indicadores de transparência | `MetricsSection` |
+| Perguntas frequentes | `FaqSection` (accordion acessível) |
+| Checkout em 3 etapas: valor → dados do doador → pagamento | `src/components/checkout/` |
+| Pagamento simulado via **Pix** (QR Code + Copia e Cola) ou **cartão** | `PaymentStep` |
+| Página de agradecimento com recibo, resistente a F5 | `src/app/obrigado/` |
+| Acessibilidade (WCAG 2.1 AA) e navegação por teclado | ver seção [Acessibilidade](#-acessibilidade) |
 
-- [x] **Etapa 1:** estrutura de pastas (App Router) e tipagem do domínio de doação
-- [x] **Etapa 2:** estado global com Context API + `useReducer`
-- [x] **Etapa 3:** Navbar responsiva, Footer institucional e tokens de design
-- [ ] **Etapa 4:** Hero com CTA e widget interativo de doação
-- [ ] **Etapa 5:** seções de conteúdo (Nossa causa, Nosso impacto, Como sua doação ajuda)
-- [ ] **Etapa 6:** modal de checkout simulado (dados do doador + Pix/Cartão)
-- [ ] **Etapa 7:** página de agradecimento (`/obrigado`) com resumo da doação
-- [ ] **Etapa 8:** revisão de responsividade, acessibilidade e deploy final
+### Fluxo do usuário
+
+```
+Hero / card de impacto / "Doe agora"
+        │  (valor e frequência vão para o Context)
+        ▼
+┌───────────── Modal de checkout ─────────────┐
+│ 1. Valor  →  2. Seus dados  →  3. Pagamento │
+└─────────────────────────────────────────────┘
+        │  submitDonation(): processa (1,5 s), gera protocolo JPA-2026-XXXXX
+        │  e salva o resumo no sessionStorage
+        ▼
+/obrigado: recibo, código Pix, compartilhar, voltar ao início
+```
 
 ---
 
@@ -34,6 +50,8 @@ Desenvolvimento incremental, uma etapa por branch e Pull Request:
 | [Lucide React](https://lucide.dev) | Ícones |
 | `next/font` | Fonte Plus Jakarta Sans otimizada e servida pelo próprio domínio |
 | [Vercel](https://vercel.com) | Deploy contínuo a cada push na `main` e preview por Pull Request |
+
+Nenhuma biblioteca de estado, formulário, modal ou validação: tudo foi resolvido com recursos nativos do React e da plataforma web.
 
 ---
 
@@ -60,9 +78,20 @@ Acesse [http://localhost:3000](http://localhost:3000).
 | Comando | Descrição |
 |---|---|
 | `npm run dev` | Servidor de desenvolvimento |
-| `npm run build` | Build de produção |
+| `npm run build` | Build de produção (inclui checagem de tipos) |
 | `npm run start` | Executa o build de produção |
 | `npm run lint` | Análise estática com ESLint |
+
+### Dados para testar o checkout
+
+Todos os campos são validados de verdade (dígitos do CPF, algoritmo de Luhn no cartão), então use dados de teste:
+
+| Campo | Valor de teste |
+|---|---|
+| CPF | `529.982.247-25` |
+| Cartão | `4111 1111 1111 1111` |
+| Validade | qualquer data futura, ex.: `12/30` |
+| CVV | `123` |
 
 ---
 
@@ -70,48 +99,70 @@ Acesse [http://localhost:3000](http://localhost:3000).
 
 ```
 src/
-├── app/                    # Rotas (App Router)
-│   ├── layout.tsx          # Layout raiz: fonte, metadata, Provider, Navbar e Footer
-│   ├── page.tsx            # Home (apenas compõe as seções)
-│   ├── globals.css         # Tailwind + tokens de design (@theme)
-│   └── obrigado/           # Rota /obrigado (em desenvolvimento)
+├── app/                        # Rotas (App Router)
+│   ├── layout.tsx              # Layout raiz: fonte, metadata, Provider, Navbar, Footer e CheckoutModal
+│   ├── page.tsx                # Home (apenas compõe as seções)
+│   ├── globals.css             # Tailwind + tokens de design (@theme)
+│   └── obrigado/page.tsx       # Rota /obrigado (metadata noindex + conteúdo client)
 ├── components/
-│   ├── layout/             # Navbar, MobileMenu, Footer, Logo, SocialIcon
-│   ├── sections/           # Seções da home (Hero, Causa, Impacto...)
-│   ├── donation/           # Widget e CTAs de doação (DonateButton)
-│   ├── checkout/           # Modal de checkout e suas etapas
-│   └── ui/                 # Componentes genéricos (Container, estilos de botão)
+│   ├── layout/                 # Navbar, MobileMenu, Footer, Logo, SocialIcon
+│   ├── sections/               # Hero, Nossa causa, Impacto, Como ajudar, Histórias, FAQ
+│   ├── donation/               # AmountPicker (compartilhado), DonationWidget, DonateButton
+│   ├── checkout/               # CheckoutModal, etapas, indicador de progresso, QR Code
+│   ├── thank-you/              # Recibo e botão de compartilhar
+│   └── ui/                     # Genéricos: Container, SectionHeading, FormField, CopyButton
 ├── context/
-│   └── DonationContext.tsx # Estado global do fluxo de doação
-├── data/                   # Conteúdo e constantes (textos, links, valores, impacto)
-├── lib/                    # Funções utilitárias (formatação, storage, classes)
-└── types/                  # Tipos TypeScript do domínio
+│   └── DonationContext.tsx     # Estado global do fluxo de doação (useReducer)
+├── data/                       # Conteúdo e constantes (textos, links, valores, impacto)
+├── lib/                        # Utilitários puros: formatação, validação, Pix, storage
+└── types/                      # Tipos TypeScript do domínio
 ```
 
 **Princípios da organização:**
 
-- **Conteúdo separado da apresentação:** textos, links e valores ficam em `src/data/`. Os componentes só recebem os dados e os exibem.
-- **`sections/` × `ui/`:** as seções são blocos únicos da página, e os componentes de `ui/` são genéricos e reutilizáveis.
-- **Server Components por padrão:** só os componentes com interação (widget, menu mobile, modal, CTAs) usam `"use client"`.
+- **Conteúdo separado da apresentação:** textos, métricas, depoimentos e perguntas ficam em `src/data/`. Os componentes só recebem os dados e os exibem.
+- **Lógica de negócio fora dos componentes:** validação de CPF/cartão, máscaras e geração do Pix são funções puras em `src/lib/`, fáceis de testar isoladamente.
+- **Server Components por padrão:** só os componentes com interação (widget, menu mobile, modal, accordion, CTAs) usam `"use client"`. As seções são renderizadas no servidor e apenas as "ilhas" interativas vão para o bundle do cliente.
 
 ---
 
-## 🧠 Decisões técnicas
+## 🧠 Decisões de engenharia
 
-### Estado global com Context API + `useReducer`
-Os dados da doação passam por componentes que não têm relação de pai e filho: o widget do Hero, o modal de checkout e a página `/obrigado`. O `useReducer` concentra todas as transições do fluxo numa única função pura (escolher valor → abrir checkout → processar → concluir). Regras como "não fechar o modal durante o processamento do pagamento" ficam num só lugar. Uma biblioteca externa (Redux, Zustand) seria desproporcional para um estado desse tamanho.
+### Valores monetários em centavos inteiros
+Todos os valores são armazenados como inteiros em centavos (`10000` = R$ 100,00), com o tipo semântico `Cents`, para evitar erros de ponto flutuante (`0.1 + 0.2 !== 0.3`). A conversão para `R$ 100,00` acontece só na exibição, com um `Intl.NumberFormat` criado uma única vez no módulo.
 
-### Valores monetários em centavos
-Todos os valores são armazenados como inteiros em centavos (`10000` = R$ 100,00), para evitar erros de ponto flutuante (`0.1 + 0.2 !== 0.3`). A conversão para `R$ 100,00` acontece apenas na exibição, com `Intl.NumberFormat`.
+### Tipos que impedem estados inválidos (uniões discriminadas)
+`PaymentDetails` é discriminado pelo campo `method`: o TypeScript só permite acessar `cardLastDigits` quando o método é cartão. As ações do reducer seguem o mesmo padrão (discriminadas por `type`), então um `switch` sem um dos casos não compila.
 
-### Tipos que impedem estados inválidos
-`PaymentDetails` é uma **união discriminada**: o TypeScript só permite `cardLastDigits` quando o método é cartão. O número completo do cartão nunca é armazenado, nem na simulação.
+### Estado global com Context API + `useReducer`, sem bibliotecas
+Os dados da doação passam por componentes sem relação de pai e filho: widget do Hero, cards de impacto, modal e página `/obrigado`. O `useReducer` concentra todas as transições numa função pura (escolher valor → abrir checkout → processar → concluir). Regras como "não fechar o modal durante o processamento" ficam num só lugar. Redux ou Zustand seriam desproporcionais para um estado desse tamanho. Com o **React Compiler** ativo, não é preciso espalhar `useMemo`/`useCallback` manualmente.
 
-### Persistência da confirmação
-Ao concluir a doação, o resumo é salvo no `sessionStorage`. Assim, a página `/obrigado` continua funcionando se o usuário recarregar a página. O `sessionStorage` (e não o `localStorage`) foi escolhido porque o dado deve ser descartado quando a aba é fechada.
+### Resiliência ao F5 com `sessionStorage`
+O Context vive na memória e é zerado ao recarregar. Por isso, ao concluir a doação, o resumo é salvo no `sessionStorage`, e a página `/obrigado` usa o Context como fonte principal e o storage como reserva. A leitura usa `useSyncExternalStore`, que devolve `undefined` no servidor e o valor real no cliente, **sem erro de hidratação** e sem `setState` dentro de `useEffect`. Sem dados (acesso direto à URL), a página redireciona para a home. O `sessionStorage` (e não o `localStorage`) foi escolhido porque o dado deve ser descartado ao fechar a aba.
 
-### Fonte única para os valores de impacto
-As equivalências ("R$ 50 garante alimentação por 1 semana") ficam em `src/data/donation.ts` e são lidas tanto pelo widget quanto pela seção "Como sua doação ajuda", o que evita mensagens contraditórias entre as seções.
+### Modal com `<dialog>` nativo
+O checkout usa `<dialog>` com `showModal()`, que já entrega, sem bibliotecas: foco preso no modal (o resto da página fica inerte), fechamento com Esc, `::backdrop` e semântica de diálogo modal. Por cima disso, o componente:
+- bloqueia Esc, clique fora e botão fechar enquanto `status === "processing"` (a regra está no reducer);
+- move o foco para o título de cada etapa, para o leitor de tela anunciar a mudança;
+- devolve o foco ao botão que abriu o modal ao fechar;
+- trava a rolagem da página via CSS (`body:has(dialog[open])`), sem JavaScript.
+
+### Dados sensíveis nunca saem do formulário
+Número, validade e CVV do cartão vivem só no estado local da etapa de pagamento. Para o Context e para o storage vão apenas os **4 últimos dígitos**.
+
+### Validações reais, não só "campo preenchido"
+- **CPF:** cálculo dos dois dígitos verificadores e rejeição de sequências repetidas (`111.111.111-11`).
+- **Cartão:** algoritmo de Luhn, validade `MM/AA` não vencida e CVV com 3 ou 4 dígitos.
+- Erros aparecem no blur (só se algo foi digitado) e no envio. O foco vai para o primeiro campo inválido, e a mensagem some assim que o campo é corrigido.
+
+### Pix Copia e Cola no padrão do Banco Central
+O código Pix segue o formato EMV (BR Code) com checksum **CRC16-CCITT**, gerado a partir do valor. A chave é fictícia, então nenhum pagamento real é possível. O QR Code é **simulado**: um desenho determinístico com os padrões de posição, porque gerar um QR escaneável exigiria um encoder Reed-Solomon ou uma dependência extra, o que não se justifica numa simulação.
+
+### Fonte única para o impacto
+As equivalências ("R$ 50 garante alimentação por 1 semana") ficam em `IMPACT_TIERS` e são lidas pelo widget, pelos cards de impacto e pelo recibo. As mensagens nunca ficam contraditórias entre as seções.
+
+### Tailwind CSS v4 sem runtime JS
+Os tokens da marca (`brand-*`, `accent-*`, `ink`, `surface`) são definidos em CSS com `@theme` e geram utilitários em build time. Não há CSS-in-JS nem arquivo de configuração JS, e nenhum custo de estilização em tempo de execução. Estados visuais usam variantes nativas como `has-checked:` e `has-focus-visible:`, sem JavaScript.
 
 ---
 
@@ -119,24 +170,31 @@ As equivalências ("R$ 50 garante alimentação por 1 semana") ficam em `src/dat
 
 Baseadas na pesquisa de benchmark realizada antes do desenvolvimento:
 
-- **Doação já na primeira tela:** widget de doação integrado ao Hero, com opção de doação única ou mensal (referência: MSF Brasil).
-- **Valores sugeridos com ancoragem:** botões de R$ 50, R$ 100 e R$ 150, com R$ 100 pré-selecionado, e campo para outro valor.
-- **Valor conectado ao impacto:** cada valor mostra o que ele representa na prática.
-- **Checkout curto e em etapas:** solicita apenas nome, e-mail e CPF, com barra de progresso (referência: UNICEF).
-- **Pix em destaque** no pagamento simulado (referência: Greenpeace).
-- **Credibilidade:** CNPJ e links legais no rodapé.
-- **Navegação honesta:** todo link do menu leva a uma seção existente. O ícone de busca do layout original foi removido porque a página não tem conteúdo pesquisável.
-- **Paleta:** um fundo neutro, um verde institucional e um amarelo de alto contraste reservado para os CTAs de doação.
+- **Doação já na primeira tela:** widget integrado ao Hero, com doação única ou mensal (referência: MSF Brasil).
+- **Valores sugeridos com ancoragem:** R$ 50, R$ 100 e R$ 150, com R$ 100 pré-selecionado, e campo para outro valor (mínimo de R$ 10).
+- **Valor conectado ao impacto:** o widget mostra, em tempo real, o que aquele valor representa na prática.
+- **Checkout curto e em etapas:** só nome, e-mail e CPF, com indicador de progresso (referência: UNICEF). Quem vem do Hero ou de um card de impacto já começa na etapa 2.
+- **Pix em destaque** e pré-selecionado no pagamento (referência: Greenpeace).
+- **Dados preservados:** fechar e reabrir o checkout não obriga a redigitar os dados do doador.
+- **Credibilidade:** destinação dos recursos, relatório auditado, CNPJ e links legais.
+- **Navegação honesta:** todo link do menu leva a uma seção existente.
+- **Paleta:** fundo neutro, verde institucional e amarelo de alto contraste reservado para os CTAs de doação.
 
 ---
 
 ## ♿ Acessibilidade
 
-- Link "Pular para o conteúdo", visível ao navegar pelo teclado
-- Menu mobile com `aria-expanded`, `aria-controls` e fechamento pela tecla Esc
-- Ícones decorativos com `aria-hidden`; botões só com ícone recebem `aria-label`
-- Rolagem suave desativada para quem usa `prefers-reduced-motion`
-- HTML semântico (`header`, `nav`, `main`, `footer`) e `lang="pt-BR"`
+Objetivo: **WCAG 2.1 nível AA**.
+
+- **Teclado:** todo o fluxo (escolher valor, preencher dados, pagar) funciona sem mouse. As opções de valor, frequência e forma de pagamento são `input type="radio"` nativos estilizados, então as setas do teclado funcionam como esperado.
+- **Modal:** foco preso, Esc para fechar, foco no título da etapa atual e retorno do foco ao fechar.
+- **Formulários:** todo campo tem `<label>`. Erros ficam ligados por `aria-describedby`, os campos inválidos recebem `aria-invalid` e o erro é sempre texto, nunca só cor (WCAG 1.4.1). Os campos têm `autocomplete` (`name`, `email`, `cc-number`, `cc-exp`...).
+- **Feedback dinâmico:** `aria-live`/`role="status"` anunciam o impacto do valor escolhido, o processamento do pagamento e a confirmação de "copiado".
+- **FAQ:** accordion no padrão WAI-ARIA (`button` com `aria-expanded` + `aria-controls`, painel com `role="region"`).
+- **Progresso:** `aria-current="step"` na etapa atual do checkout.
+- **Dados visuais:** a barra de destinação de recursos tem texto alternativo com os mesmos números.
+- **Movimento:** rolagem suave e animações desativadas com `prefers-reduced-motion`.
+- **Estrutura:** link "Pular para o conteúdo", HTML semântico (`header`, `nav`, `main`, `section` com `aria-labelledby`, `footer`), hierarquia de títulos consistente e `lang="pt-BR"`.
 
 ---
 
@@ -144,26 +202,58 @@ Baseadas na pesquisa de benchmark realizada antes do desenvolvimento:
 
 Abordagem **mobile-first**, testada de 320px a 1440px:
 
-| Faixa | Largura | Comportamento da navegação |
+| Faixa | Largura | Comportamento |
 |---|---|---|
-| Celular | 0 – 639px | Logo + menu hambúrguer (CTA dentro do menu) |
-| Tablet | 640 – 1023px | Logo + CTA "Doe agora" + menu hambúrguer |
-| Desktop | a partir de 1024px | Menu horizontal completo + CTA |
+| Celular | 0 – 639px | Menu hambúrguer (CTA dentro do menu), seções em uma coluna |
+| Tablet | 640 – 1023px | CTA "Doe agora" visível no header, grids de 2 colunas |
+| Desktop | a partir de 1024px | Menu horizontal completo, Hero em duas colunas com o widget ao lado |
+
+O modal ocupa quase toda a tela no celular e rola internamente quando o conteúdo não cabe.
+
+---
+
+## ☁️ Deploy na Vercel
+
+1. Suba o código para o GitHub (branch `main`).
+2. Acesse [vercel.com/new](https://vercel.com/new) e entre com a sua conta do GitHub.
+3. Em **Import Git Repository**, selecione `ong-impacto-social` e clique em **Import**.
+4. A Vercel detecta o Next.js sozinha. Mantenha os padrões:
+   - **Framework Preset:** Next.js
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `.next` (automático)
+   - **Environment Variables:** nenhuma é necessária
+5. Clique em **Deploy**. Em cerca de 1 minuto a URL de produção (`*.vercel.app`) fica disponível.
+6. Atualize o link de **Deploy** no topo deste README.
+
+A partir daí, cada push na `main` gera um deploy de produção, e cada Pull Request ganha uma URL de preview própria.
+
+> Dica: antes de publicar, rode `npm run lint && npm run build` localmente. É o mesmo build que a Vercel executa.
 
 ---
 
 ## 🔀 Fluxo de trabalho
 
-- Uma branch por funcionalidade (`feat/navbar-footer`, `feat/hero-widget`...)
+- Uma branch por funcionalidade (`feat/navbar-footer`, `feat/secoes-checkout-obrigado`...)
 - Pull Request para a `main`, com preview automático da Vercel
 - Commits no padrão [Conventional Commits](https://www.conventionalcommits.org/pt-br/) (`feat:`, `fix:`, `chore:`, `docs:`)
 - Deploy de produção automático a cada merge na `main`
 
 ---
 
+## 🔭 Próximos passos
+
+Para uma versão real, os próximos passos seriam:
+
+- Testes unitários das funções puras de `src/lib/` (Vitest) e um teste E2E do fluxo de doação (Playwright)
+- Integração com um gateway de pagamento real (tokenização do cartão no front, sem o número completo passar pelo servidor)
+- Envio do recibo por e-mail a partir de uma API Route
+- Auditoria automatizada de acessibilidade com axe no CI
+
+---
+
 ## ⚠️ Aviso
 
-A "Juntos pelo Amanhã" é uma organização **fictícia**. Nenhum pagamento real é processado: o checkout é apenas uma simulação da experiência do usuário. O CNPJ exibido também é fictício.
+A "Juntos pelo Amanhã" é uma organização **fictícia**. Nenhum pagamento real é processado: o checkout é apenas uma simulação da experiência do usuário. CNPJ, chave Pix, números e depoimentos também são fictícios.
 
 ---
 
